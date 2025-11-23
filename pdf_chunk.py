@@ -56,21 +56,31 @@ llm = ChatGoogleGenerativeAI(
 retriever = vector_db.as_retriever(search_kwargs={"k": 3})
 
 # A. Buat Prompt System (Agar AI tahu perannya)
-system_prompt = (
-    "Anda adalah asisten yang membantu menjawab pertanyaan berdasarkan konteks yang diberikan. "
-    "Gunakan potongan konteks berikut untuk menjawab pertanyaan. "
-    "Jika Anda tidak tahu jawabannya, katakan bahwa Anda tidak tahu. "
-    "Gunakan maksimal tiga kalimat dan jawab dengan ringkas."
-    "\n\n"
-    "{context}"
-)
+# system_prompt = (
+#     "Anda adalah asisten yang membantu menjawab pertanyaan berdasarkan konteks yang diberikan. "
+#     "Gunakan potongan konteks berikut untuk menjawab pertanyaan. "
+#     "Jika Anda tidak tahu jawabannya, katakan bahwa Anda tidak tahu. "
+#     "Gunakan maksimal tiga kalimat dan jawab dengan ringkas."
+#     "\n\n"
+#     "{context}"
+# )
 
-prompt = ChatPromptTemplate.from_messages(
-    [
-        ("system", system_prompt),
-        ("human", "{input}"),
-    ]
-)
+system_prompt = """Anda adalah Asisten HRD yang tegas namun membantu.
+Tugas Anda adalah menjawab pertanyaan karyawan berdasarkan potongan SOP berikut.
+
+Aturan:
+1. Jawab hanya berdasarkan konteks yang diberikan.
+2. Jika informasi tidak ada di konteks, katakan dengan tegas: "Maaf, hal tersebut tidak diatur dalam SOP perusahaan."
+3. Jangan mengarang jawaban sendiri.
+
+Konteks SOP:
+{context}
+
+Pertanyaan Karyawan: {question}
+
+Jawaban:"""
+
+prompt = ChatPromptTemplate.from_messages(system_prompt)
 
 # B. Buat Chain untuk Memproses Dokumen (Stuff Documents Chain)
 question_answer_chain = create_stuff_documents_chain(llm, prompt)
@@ -86,7 +96,7 @@ rag_chain = create_retrieval_chain(retriever, question_answer_chain)
 #     chain_type = "stuff", 
 #     return_source_documents=True)
 
-#Using LCEL(LangChain Expression Language)
+
 def tanya(pertanyaan):
     print(f"\n❓ Tanya: {pertanyaan}")
     # Perhatikan key inputnya adalah "input"
