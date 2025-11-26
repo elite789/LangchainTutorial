@@ -21,7 +21,7 @@ if not os.getenv("GOOGLE_API_KEY"):
 # --- TAHAP 1: PERSIAPAN DATA (INGESTION) ---
 print("📂 1. Memuat & Memecah Dokumen...")
 # Ganti path sesuai file Anda
-loader = PyPDFLoader("/Users/azhardzakwan/Documents/To_DriveAzhar/Coding/AgenticAI/LangChain/PDF Langchain Test.pdf")
+loader = PyPDFLoader("./PDF Langchain Test.pdf")
 docs = loader.load()
 
 splitter = RecursiveCharacterTextSplitter(chunk_size=1000, chunk_overlap=200)

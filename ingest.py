@@ -9,7 +9,7 @@ load_dotenv()
 
 #1. Loading Data
 print("Reading PDF Data ...")
-loader = PyPDFLoader("/Users/azhardzakwan/Documents/To_DriveAzhar/Coding/AgenticAI/LangChain/PDF Langchain Test.pdf")
+loader = PyPDFLoader("./PDF Langchain Test.pdf")
 docs = loader.load()
 
 #2. Split/Chunking Data
