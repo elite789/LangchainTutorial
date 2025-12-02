@@ -2,8 +2,6 @@ import streamlit as st
 import os
 import base64 # <-- Library baru untuk encoding PDF
 from dotenv import load_dotenv
-from langchain_community.document_loaders import PyPDFLoader
-from langchain_text_splitters import RecursiveCharacterTextSplitter
 
 # Import Library LangChain
 from langchain_chroma import Chroma
@@ -43,49 +41,12 @@ def display_pdf(file_path):
     # Embed PDF menggunakan HTML iframe
     pdf_display = f'<iframe src="data:application/pdf;base64,{base64_pdf}" width="100%" height="800px" type="application/pdf"></iframe>'
     st.markdown(pdf_display, unsafe_allow_html=True)
-    
-# --- FUNGSI AUTO-INGEST (KHUSUS CLOUD) ---
-def ensure_database_exists():
-    """
-    Cek apakah database ada. Jika tidak ada (kasus pertama di Cloud),
-    buat database secara otomatis dari file PDF.
-    """
-    if not os.path.exists("./chroma_db"):
-        st.warning("⚠️ Database belum ditemukan (First Run). Sedang memproses dokumen PDF...")
-        
-        # 1. Cek PDF
-        if not os.path.exists(PDF_FILE_PATH):
-            st.error(f"FATAL ERROR: File PDF tidak ditemukan di {PDF_FILE_PATH}")
-            st.stop()
-            
-        # 2. Proses Ingest (Sama seperti ingest.py)
-        with st.spinner("Membaca & Memecah PDF..."):
-            loader = PyPDFLoader(PDF_FILE_PATH)
-            docs = loader.load()
-            splitter = RecursiveCharacterTextSplitter(chunk_size=1000, chunk_overlap=200)
-            splits = splitter.split_documents(docs)
-            
-        # 3. Embedding & Simpan
-        with st.spinner("Membuat Vector Database (ini memakan waktu)..."):
-            embeddings = GoogleGenerativeAIEmbeddings(model="models/embedding-001")
-            vectorstore = Chroma.from_documents(
-                documents=splits,
-                embedding=embeddings,
-                collection_name="knowledge_base_perusahaan",
-                persist_directory="./chroma_db"
-            )
-        
-        st.success("✅ Database berhasil dibuat! Aplikasi siap.")
-        st.rerun() # Refresh halaman otomatis
-
-ensure_database_exists()
-
 
 # --- FUNGSI LOAD ENGINE RAG (BACKEND) ---
 @st.cache_resource
 def get_rag_chain():
     if not os.path.exists("./chroma_db"):
-        st.error("Folder 'chroma_db' belum ada. Jalankan ingest.py dulu!")
+        st.error("Folder 'chroma_db' belum ada. Pastikan database sudah ada di repository!")
         return None
         
     embeddings = GoogleGenerativeAIEmbeddings(model="gemini-embedding-001")
